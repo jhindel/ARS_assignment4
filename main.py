@@ -2,23 +2,23 @@
 author: Diego Di Benedetto, Julia Hindel
 """
 
-from environment import Environment
+from world import World
 from robot import Robot
 from tkinter import *
 
 
 def key_pressed(event):
+    print("key pressed")
     agent.event_reaction(event.char)
 
 window = Tk()
 window.title('World simulation')
 window.bind('<Key>', key_pressed)
 
-agent = Robot()
-world = Environment(window, agent.get_position(), agent.get_radius(), agent.get_sensors())
+world = World(True, window, 0)
+agent = Robot(world)
+
 while True:
-    x, y = agent.update(world.get_obstacles())
-    world.move_agent(x, y, agent)
+    agent.update()
 
-
-window.mainloop()
+# window.mainloop()
