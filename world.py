@@ -14,16 +14,11 @@ class World:
 
     dust_steps = 0
 
-    # dictionary with different rooms
-    obstacles = dict(rec=[[100, 100, 700, 100, 700, 700, 100, 700]],
-                     double_rec=[[100, 100, 700, 100, 700, 700, 100, 700], [300, 300, 500, 300, 500, 500, 300, 500]],
-                     room=[[100, 100, 700, 100, 700, 700, 100, 700],
-                           [100, 200, 300, 200, 300, 250, 100, 250],
-                           [500, 200, 600, 200, 600, 300, 500, 300],
-                           [350, 500, 400, 500, 400, 700, 350, 700]],
-                     star=[[400, 50, 500, 300, 700, 300, 525, 425, 600, 700, 400, 500, 200, 700, 275, 425, 100, 300, 300, 300]],
-                     trapezoid=[[100, 100, 700, 200, 700, 600, 100, 700]],
-                     double_trapezoid=[[100, 100, 700, 200, 700, 600, 100, 700], [300, 300, 500, 300, 500, 500, 300, 500]])
+    room = dict(points=[[100, 100, 700, 100, 700, 700, 100, 700], [200, 200, 210, 210], [300, 500, 310, 510],
+                        [450, 600, 460, 610], [600, 150, 610, 160], [550, 600, 560, 610], [550, 300, 560, 310],
+                        [200, 530, 210, 540], [470, 470, 480, 480], [280, 210, 290, 220]],
+                walls=[[100, 100, 700, 100, 700, 700, 100, 700], [100, 500, 200, 500],
+                     [500, 300, 700, 300], [400, 500, 400, 700]])
 
     def __init__(self, GUI, config=0):
         '''
@@ -32,19 +27,17 @@ class World:
         in EA.run_generation
         '''
         self.world_configuration = config
-        self.key = list(self.obstacles.keys())[self.world_configuration]
+        self.key = list(self.room.keys())[self.world_configuration]
         self.display = GUI
-        self.dust = np.ones((self.max_X, self.max_Y)) * 255
-        # self.dust = np.full((self.max_X, self.max_Y), 1., dtype=int)
         if GUI:
             self.window = Tk()
             # self.window = Toplevel()
             self.window.title('World simulation')
             self.canvas = Canvas(self.window)
             self.draw_obstacles()
-            self.init_dust()
             self.canvas.configure(width=self.max_X, height=self.max_Y)
-            # self.canvas.pack(fill="both", expand=True)
+            self.canvas.pack(fill="both", expand=True)
+            self.window.mainloop()
             # print(self.canvas)
 
     def change_display(self, bool):
@@ -58,30 +51,19 @@ class World:
         self.draw_sensors(agent.get_position(), agent.get_sensors())
         self.draw_velocity(agent.get_position())
 
-    def get_dust_value(self):
-        if self.display:
-            try:
-                #TODO change
-                # pass
-                self.window.destroy()
-            except:
-                pass
-        # print("dust", int(np.count_nonzero(self.dust == 100)) / (self.max_Y * self.max_X))
-        return int(np.count_nonzero(self.dust == 100)) / (self.max_Y * self.max_X)
-
-    def init_dust(self):
-        self.background_label = self.canvas.create_image(0, 0, image=None, anchor='nw', tag="A")
-        self.canvas.tag_lower("A")
-
     def get_obstacles(self):
-        return self.obstacles
+        return self.room
 
     def draw_obstacles(self):
-        for i, obstacle in enumerate(self.obstacles[self.key]):
-            self.canvas.create_polygon(obstacle, outline='black', fill=("" if i == 0 else 'white'), width=1, tag=f"polygon{i}")
-            self.canvas.tag_lower(f"polygon{i}")
-            # print(i, obstacle)
-
+        if self.key == 'points':
+            for i, obstacle in enumerate(self.room[self.key]):
+                if i == 0:
+                    self.canvas.create_polygon(obstacle, outline='black', fill='white')
+                else:
+                    self.canvas.create_oval(obstacle, fill='black')
+        else:
+            for i, obstacle in enumerate(self.room[self.key]):
+                self.canvas.create_polygon(obstacle, outline='black', fill='white')
 
     def draw_robot(self, position, radius):
         # print(position, radius)
@@ -140,47 +122,9 @@ class World:
 
     def move_agent(self, x, y, agent):
         # update all objects in environment
-        if self.dust_steps % 20 == 0:
-            # print(self.dust_steps)
-            self.draw_dust()
-        self.dust_steps += 1
         self.canvas.move('robot', x, y)
         self.update_angle(agent.get_direction_coords())
         self.update_sensors(agent.get_position(), agent.get_sensors())
         self.update_velocity_display(agent.get_position(), agent.get_velocity())
         self.canvas.update_idletasks()
         self.canvas.after(1)
-
-    def update_dust(self, position, radius=20):
-        # calculate the amount of dust collected at current position
-        top = round(max(self.min_Y, position[0] - radius))
-        bottom = round(min(self.max_Y, position[0] + radius))
-        left = round(max(self.min_X, position[1] - radius))
-        right = round(min(self.max_X, position[1] + radius))
-        for y in range(top, bottom):
-            for x in range(left, right):
-                if self.inside_circle(position, [y, x], radius):
-                    self.dust[y, x] = 100
-        # self.dust = self.dust.T
-        # print(self.dust)
-
-    def inside_circle(self, position, point, radius):
-        dx = position[0] - point[0]
-        dy = position[1] - point[1]
-
-        distance_squared = dx * dx + dy * dy
-        return distance_squared <= radius * radius
-
-    def draw_dust(self):
-        dust = self.dust.copy()
-        self.im = ImageTk.PhotoImage(image=Image.fromarray(dust.T), master=self.window)
-        self.canvas.itemconfigure(self.background_label, image=self.im)
-        # self.background_label.configure(image=self.im)
-
-    def display_dust(self):
-        fig, ax = plt.subplots()
-        ax.matshow(self.dust.T, cmap=plt.cm.Blues)
-        plt.title(f"world {self.key} dust {self.get_dust_value()}")
-        plt.show()
-        time.sleep(3)
-        plt.close(fig)
