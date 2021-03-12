@@ -15,7 +15,7 @@ window = Tk()
 window.title('World simulation')
 window.bind('<Key>', key_pressed)
 
-world = World(True, window, 0)
+world = World(window)
 agent = Robot(world)
 
 while True:

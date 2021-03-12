@@ -19,35 +19,26 @@ class World:
                         [450, 600], [600, 150], [550, 600], [550, 300], [200, 530],
                         [470, 470], [280, 210]]
 
-    def __init__(self, GUI, window, config=0):
+    def __init__(self, window):
         '''
         the configuration of the world is chosen with the parameter config(set in EA)
         GUI is a boolean variable, when set to true the world is displayed. the variable is dynamically changed
         in EA.run_generation
         '''
-        self.display = GUI
-        if GUI:
-            self.window = window
-            self.canvas = Canvas(self.window)
-            self.draw_obstacles()
-            self.canvas.configure(width=self.max_X, height=self.max_Y)
-            self.canvas.pack(fill="both", expand=True)
-            # self.window.mainloop()
-            # print(self.canvas)
 
-    def change_display(self, bool):
-        self.display = bool
-        if self.display:
-            self.__init__(self.display, self.world_configuration)
+        self.window = window
+        self.canvas = Canvas(self.window)
+        self.draw_obstacles()
+        self.canvas.configure(width=self.max_X, height=self.max_Y)
+        self.canvas.pack(fill="both", expand=True)
 
     def init_agent(self, agent):
         self.canvas.pack()
         self.draw_robot(agent.get_position(), agent.get_radius())
-        self.draw_sensors(agent.get_position(), agent.get_sensors())
-        self.draw_velocity(agent.get_position())
+        self.draw_landmark_lines(agent.get_position())
 
     def get_obstacles(self):
-        return self.room
+        return self.room[1:]
 
     def draw_obstacles(self):
         for i, obstacle in enumerate(self.room):
@@ -73,52 +64,37 @@ class World:
         self.canvas.tag_raise('robot')
         self.canvas.tag_raise('line')
 
-    def draw_sensors(self, position, sensors):
-        for i, [x2, y2, value, _, _, _] in enumerate(sensors):
-            # 16/20 at current position and 4/20 at end_point sensors
-            self.canvas.create_text((16 / 20 * position[0] + 4 / 20 * x2), (16 / 20 * position[1] + 4 / 20 * y2),
-                                    fill="black", font="Times 7",
-                                    text=round(value), tags=f'sensor{i}')
-            self.canvas.lift(f'sensor{i}')
-
-    def draw_velocity(self, position):
-        # draw the velocity values of the the motors
-        self.canvas.create_text(position[0], position[1] + 12, fill="black", font="Times 10",
-                                text="0", tags='velocity')
-        self.canvas.tag_raise('velocity')
+    def draw_landmark_lines(self, position):
+        for i in range(len(self.room)-1):
+            self.canvas.create_line(position[0], position[1], self.room[i + 1], self.room[i + 1], tags=f'landmark{i}', fill='green')
 
     def update_angle(self, direction_coord):
         # update line indicating direction from passed coordinates
         self.canvas.coords('line', direction_coord[0], direction_coord[1], direction_coord[2], direction_coord[3])
         self.canvas.lift('line')
 
-    def update_sensors(self, position, sensors):
-        for i, [x2, y2, value, _, _, _] in enumerate(sensors):
-            # 16/20 at current position and 4/20 at end_point sensors
-            self.canvas.itemconfig(f'sensor{i}', text=np.round(value))
-            self.canvas.coords(f'sensor{i}', (16 / 20 * position[0] + 4 / 20 * x2),
-                               (16 / 20 * position[1] + 4 / 20 * y2))
-            # self.canvas.lift(f'sensor{i}')
-
-    def update_velocity_display(self, position, velocity):
-        # add label 12 pixel from center
-        x1 = position[0] + 12 * np.cos(position[2] - np.pi / 2)
-        y1 = position[1] + 12 * np.sin(position[2] - np.pi / 2)
-        self.canvas.itemconfig('velocity', text=np.round(velocity, 0))
-        self.canvas.coords('velocity', x1, y1)
-
-    def move_agent(self, x, y, agent):
+    def move_agent(self, agent):
         # update all objects in environment
+        position = agent.get_position()
+        old_position = agent.get_old_position()
+        x = position[0] - old_position[0]
+        y = position[1] - old_position[1]
         self.canvas.move('robot', x, y)
         self.canvas.tag_raise('robot')
         self.update_angle(agent.get_direction_coords())
-        self.update_sensors(agent.get_position(), agent.get_sensors())
-        self.update_velocity_display(agent.get_position(), agent.get_velocity())
-        # self.canvas.update_idletasks()
-        # self.canvas.after(1)
+        self.update_landmarks_line(position, agent.get_landmarks())
+        self.update_trajectory(position, old_position)
         self.canvas.update()
-        # necessary otherwise too fast
         time.sleep(0.01)
 
-    def update_trajectory(self, position):
-        return
+    def update_trajectory(self, position, old_position):
+        self.canvas.create_line(position[0], position[1], old_position[0], old_position[1])
+
+    def update_landmarks_line(self, position, landmarks):
+        for i in range(len(self.room) - 1):
+            if landmarks[i]:
+                self.canvas.coords(f'landmark{i}', position[0], position[1], self.room[i+1][0], self.room[i+1][1])
+                self.canvas.itemconfigure(f'landmark{i}', state='normal')
+                self.canvas.tag_raise(f'landmark{i}')
+            else:
+                self.canvas.itemconfigure(f'landmark{i}', state='hidden')
