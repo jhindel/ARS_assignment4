@@ -13,12 +13,11 @@ class World:
     max_Y = 800
 
     dust_steps = 0
+    radius = 10
 
-    room = dict(points=[[100, 100, 700, 100, 700, 700, 100, 700], [200, 200, 10], [300, 500, 10],
-                        [450, 600, 10], [600, 150, 10], [550, 600, 10], [550, 300, 10], [200, 530, 10],
-                        [470, 470, 10], [280, 210, 10]],
-                walls=[[100, 100, 700, 100, 700, 700, 100, 700], [100, 500, 200, 500],
-                     [500, 300, 700, 300], [400, 500, 400, 700]])
+    room = [[100, 100, 700, 100, 700, 700, 100, 700], [200, 200], [300, 500],
+                        [450, 600], [600, 150], [550, 600], [550, 300], [200, 530],
+                        [470, 470], [280, 210]]
 
     def __init__(self, GUI, window, config=0):
         '''
@@ -26,8 +25,6 @@ class World:
         GUI is a boolean variable, when set to true the world is displayed. the variable is dynamically changed
         in EA.run_generation
         '''
-        self.world_configuration = config
-        self.key = list(self.room.keys())[self.world_configuration]
         self.display = GUI
         if GUI:
             self.window = window
@@ -53,18 +50,15 @@ class World:
         return self.room
 
     def draw_obstacles(self):
-        if self.key == 'points':
-            for i, obstacle in enumerate(self.room[self.key]):
-                if i == 0:
-                    self.canvas.create_polygon(obstacle, outline='black', fill='white', tags=f"polygon{i}")
-                    self.canvas.tag_lower(f"polygon{i}")
-                else:
-                    self.canvas.create_oval(obstacle, fill='black', tags=f"oval{i}")
-                    self.canvas.tag_raise(f"oval{i}")
-        else:
-            for i, obstacle in enumerate(self.room[self.key]):
-                self.canvas.create_polygon(obstacle, outline='black', fill='white', tags=f"polygon2{i}")
-                self.canvas.tag_lower(f"polygon2{i}")
+        for i, obstacle in enumerate(self.room):
+            if i == 0:
+                self.canvas.create_polygon(obstacle, outline='black', fill='white', tags=f"polygon{i}")
+                self.canvas.tag_lower(f"polygon{i}")
+            else:
+                self.canvas.create_oval(obstacle[0] - self.radius, obstacle[1] - self.radius,
+                                        obstacle[0] + self.radius, obstacle[1] + self.radius,
+                                        fill='black', tags=f"oval{i}")
+                self.canvas.tag_raise(f"oval{i}")
 
     def draw_robot(self, position, radius):
         # print(position, radius)
