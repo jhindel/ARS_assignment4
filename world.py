@@ -84,6 +84,7 @@ class World:
         self.update_angle(agent.get_direction_coords())
         self.update_landmarks_line(position, agent.get_landmarks())
         self.update_trajectory(position, old_position)
+        self.update_state(agent.localization.state, agent.localization.old_state)
         self.canvas.update()
         time.sleep(0.01)
 
@@ -92,9 +93,13 @@ class World:
 
     def update_landmarks_line(self, position, landmarks):
         for i in range(len(self.room) - 1):
-            if landmarks[i]:
+            if landmarks[i] != -1:
                 self.canvas.coords(f'landmark{i}', position[0], position[1], self.room[i+1][0], self.room[i+1][1])
                 self.canvas.itemconfigure(f'landmark{i}', state='normal')
                 self.canvas.tag_raise(f'landmark{i}')
             else:
                 self.canvas.itemconfigure(f'landmark{i}', state='hidden')
+
+
+    def update_state(self, state, old_state):
+        self.canvas.create_line(state[0], state[1], old_state[0], old_state[1], fill='red')

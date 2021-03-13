@@ -3,7 +3,7 @@ author: Diego Di Benedetto, Julia Hindel
 """
 
 import numpy as np
-
+from localization import Localization
 
 class Robot:
     # robot features
@@ -23,10 +23,11 @@ class Robot:
         self.velocity = 0
         # list of detected walls
         self.old_position = []
-        self.landmarks = [False for _ in world.get_obstacles()]
+        self.landmarks = [-1 for _ in world.get_obstacles()]
         self.world = world
         # position
         self.position = self.init_position
+        self.localization = Localization(self.position)
         # coordinates of line indicating direction
         self.direction_coords = np.array([self.position[0], self.position[1], self.position[0] + 20, self.position[1]])
         # boolean determining if checks for intersection are needed
@@ -57,6 +58,9 @@ class Robot:
         self.update_direction_coords(new_position)
         self.old_position = self.position.copy()
         self.position = new_position.copy()
+        self.localization.prediction(self.velocity, self.w, self.landmarks, self.world.get_obstacles())
+        print(self.localization.state, self.position)
+        self.w = 0
         self.world.move_agent(self)
 
     def update_landmarks(self, new_position):
@@ -65,11 +69,11 @@ class Robot:
         for i in range(len(landmarks)):
                 point = landmarks[i]
                 # distance from new_position to line
-                d = np.sqrt(pow(point[0] - new_position[0], 2) + pow(point[1] - new_position[1], 2)) - self.radius
+                d = np.sqrt(pow(point[0] - new_position[0], 2) + pow(point[1] - new_position[1], 2))
                 if d < self.distance_threshold:
-                    self.landmarks[i] = True
+                    self.landmarks[i] = d
                 else:
-                    self.landmarks[i] = False
+                    self.landmarks[i] = -1
 
     """
     used for calculation of new position
@@ -78,9 +82,7 @@ class Robot:
     def timestep_movement(self, time=1):
         # clip max_speed
         self.velocity = np.clip(self.velocity, -self.max_speed, self.max_speed)
-        temp_pos = self.calculate_position(time)
-        self.w = 0
-        return temp_pos
+        return self.calculate_position(time)
 
     def calculate_position(self, time):
         # according to formula
