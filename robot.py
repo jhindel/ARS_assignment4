@@ -9,7 +9,7 @@ class Robot:
     # robot features
     radius = 20.
     sensor_range = 200
-    distance_threshold = 50
+    distance_threshold = 150
     init_position = np.array([150., 325., 0.])
     # movement features
     max_speed = 5
@@ -58,8 +58,8 @@ class Robot:
         self.update_direction_coords(new_position)
         self.old_position = self.position.copy()
         self.position = new_position.copy()
-        self.localization.prediction(self.velocity, self.w, self.landmarks, self.world.get_obstacles())
-        print(self.localization.state, self.position)
+        self.localization.apply_filter(self.velocity, self.w, self.landmarks, self.world.get_obstacles(), self.position)
+        print('result ', self.localization.state, self.position)
         self.w = 0
         self.world.move_agent(self)
 

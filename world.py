@@ -40,6 +40,9 @@ class World:
     def get_obstacles(self):
         return self.room[1:]
 
+    def get_coordinate_obstacle(self, index):
+        return self.room[index + 1]
+
     def draw_obstacles(self):
         for i, obstacle in enumerate(self.room):
             if i == 0:
