@@ -13,8 +13,8 @@ class Localization:
         self.old_state = []
         self.covariance = np.array([[self.covariance_init, 0, 0], [0, self.covariance_init, 0],
                                     [0, 0, self.covariance_init]])
-        self.R = np.array([[self.R_init, 0, 0], [0, self.R_init, 0], [0, 0, self.R_init]])
-        self.Q = np.array([[self.Q_init, 0, 0], [0, self.Q_init, 0], [0, 0, self.Q_init]])
+        self.R = np.array([[0.1, 0, 0], [0, 0.2, 0], [0, 0, 0.8]])
+        self.Q = np.array([[0.1, 0, 0], [0, 0.1, 0], [0, 0, 0.1]])
         self.I = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
     def apply_filter(self, velocity, w, landmarks, obstacles, position):
@@ -35,6 +35,7 @@ class Localization:
         else:
             temp_state = self.I.dot(self.state) + B.dot(np.array([velocity, w]))
             temp_covariance = self.I.dot(self.covariance).dot(self.I.T) + self.R
+            self.R = np.array([[np.random.normal(), 0, 0], [0, np.random.normal(), 0], [0, 0, np.random.normal()]])
 
         # no correction
         if np.all(z) == 0:
@@ -43,6 +44,7 @@ class Localization:
         # correction
         else:
             K = temp_covariance.dot(self.I.T).dot(np.linalg.inv((self.I.dot(temp_covariance).dot(self.I.T) + self.Q)))
+            print("K", K)
             self.state = temp_state + K.dot((z - self.I.dot(temp_state)))
             self.covariance = (self.I - K.dot(self.I)).dot(temp_covariance)
         print("covariance-matrix\n", self.covariance)
