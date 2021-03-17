@@ -12,7 +12,7 @@ class World:
     min_Y = 0
     max_Y = 800
 
-    dust_steps = 0
+    steps = 0
     radius = 10
 
     room = [[100, 100, 700, 100, 700, 700, 100, 700], [200, 200], [300, 500],
@@ -36,6 +36,7 @@ class World:
         self.canvas.pack()
         self.draw_robot(agent.get_position(), agent.get_radius())
         self.draw_landmark_lines(agent.get_position())
+        self.draw_covariance(agent.get_position())
 
     def get_obstacles(self):
         return self.room[1:]
@@ -88,8 +89,11 @@ class World:
         self.update_landmarks_line(position, agent.get_landmarks())
         self.update_trajectory(position, old_position)
         self.update_state(agent.localization.state, agent.localization.old_state)
+        if self.steps % 10 == 0:
+            self.update_covariance(agent.localization.state, agent.localization.covariance)
         self.canvas.update()
         time.sleep(0.01)
+        self.steps += 1
 
     def update_trajectory(self, position, old_position):
         self.canvas.create_line(position[0], position[1], old_position[0], old_position[1])
@@ -106,3 +110,12 @@ class World:
 
     def update_state(self, state, old_state):
         self.canvas.create_line(state[0], state[1], old_state[0], old_state[1], fill='red')
+
+    def draw_covariance(self, state):
+        self.canvas.create_oval(*(state[:2] - [10, 10]), *(state[:2] + [10, 10]))
+
+
+    def update_covariance(self, state, covariance):
+        print("update_covariance")
+        self.canvas.coords('cov', *(state[:1] - [covariance[0][0], covariance[1][1]]), *(state[:1] + [covariance[0][0], covariance[1][1]]))
+

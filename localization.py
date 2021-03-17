@@ -4,9 +4,9 @@ import numpy as np
 
 
 class Localization:
-    covariance_init = 0.1
-    R_init = 2
-    Q_init = 2
+    covariance_init = 1
+    R_init = 0.1
+    Q_init = 0.1
 
     def __init__(self, position):
         self.state = position
@@ -27,20 +27,28 @@ class Localization:
                       [delta * time * np.sin(self.state[2]), 0],
                       [0, delta * time]])
         self.old_state = self.state.copy()
-        temp_state = self.I.dot(self.state) + B.dot(np.array([velocity, w]))
-        print('temp ', temp_state)
-        temp_covariance = self.I.dot(self.covariance).dot(self.I.T) + self.R
+        # no prediction
+        if velocity == 0 and w == 0:
+            temp_state = self.state
+            temp_covariance = self.covariance
+        # prediction
+        else:
+            temp_state = self.I.dot(self.state) + B.dot(np.array([velocity, w]))
+            temp_covariance = self.I.dot(self.covariance).dot(self.I.T) + self.R
+
+        # no correction
         if np.all(z) == 0:
             self.state = temp_state
             self.covariance = temp_covariance
+        # correction
         else:
             K = temp_covariance.dot(self.I.T).dot(np.linalg.inv((self.I.dot(temp_covariance).dot(self.I.T) + self.Q)))
             self.state = temp_state + K.dot((z - self.I.dot(temp_state)))
             self.covariance = (self.I - K.dot(self.I)).dot(temp_covariance)
+        print("covariance-matrix\n", self.covariance)
         return self.state, self.covariance
 
     def sensor_model(self, landmarks, obstacles, position):
-        z = 0
         vector = []
         for i in range(len(obstacles)):
             if landmarks[i] > -1:
@@ -78,7 +86,6 @@ class Localization:
                     print('angle ', vector[i][1] + alpha, alpha)
                     theta += -vector[i][1] + alpha
                 theta /= len(vector)
-
                 return np.array([intersection[0], intersection[1], theta]) + error
         print('less 2')
         return np.zeros(3)
