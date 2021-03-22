@@ -104,7 +104,7 @@ class World:
         self.canvas.create_line(state[0], state[1], old_state[0], old_state[1], fill='red')
 
     def draw_covariance(self, state, covariance):
-        print("update_covariance", state, [covariance[0][0], covariance[1][1]])
+        # print("update_covariance", state, [covariance[0][0], covariance[1][1]])
         # first draw the ellipse using matplotlib
         # calculate covariance height and width
         # a = covariance[0][0]
@@ -124,7 +124,7 @@ class World:
         vertices = ellipse.get_verts()  # get the vertices from the ellipse object
 
         flat_vertices = [item for sublist in vertices for item in sublist]
-        print(flat_vertices)
+        # print(flat_vertices)
         # Turn it into a polygon
         self.canvas.create_polygon(*flat_vertices, fill='blue')
 

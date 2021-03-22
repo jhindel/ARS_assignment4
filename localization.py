@@ -37,10 +37,10 @@ class Localization:
         # correction
         else:
             K = temp_covariance.dot(self.I.T).dot(np.linalg.inv((self.I.dot(temp_covariance).dot(self.I.T) + self.Q)))
-            print("K", K)
+            # print("K", K)
             self.state = temp_state + K.dot((z - self.I.dot(temp_state)))
             self.covariance = (self.I - K.dot(self.I)).dot(temp_covariance)
-        print("covariance-matrix\n", self.covariance)
+        # print("covariance-matrix\n", self.covariance)
         return self.state, self.covariance
 
     def sensor_model(self, landmarks, obstacles, position):
