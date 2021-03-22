@@ -77,10 +77,7 @@ class Localization:
                 for i in range(len(vector)):
                     x1, y1 = obstacles[int(vector[i][2])]
                     alpha = math.atan2(y1 - intersection[1], x1 - intersection[0])
-                    print('vec ', vector[i][1])
-                    print('angle ', vector[i][1] + alpha, alpha)
                     theta += -vector[i][1] + alpha
                 theta /= len(vector)
                 return np.array([intersection[0], intersection[1], theta]) + error
-        print('less 2')
         return np.zeros(3)
