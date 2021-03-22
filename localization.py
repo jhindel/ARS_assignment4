@@ -5,15 +5,14 @@ import numpy as np
 
 class Localization:
     covariance_init = 1
-    R_init = 0.1
-    Q_init = 0.1
+    # R_init = 0.1
+    # Q_init = 0.1
 
     def __init__(self, position):
         self.state = position
         self.old_state = []
-        self.covariance = np.array([[self.covariance_init, 0, 0], [0, self.covariance_init, 0],
-                                    [0, 0, self.covariance_init]])
-        self.R = np.array([[0.1, 0, 0], [0, 0.2, 0], [0, 0, 0.8]])
+        self.covariance = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        self.R = np.array([[0.1, 0, 0], [0, 0.1, 0], [0, 0, 0.1]])
         self.Q = np.array([[0.1, 0, 0], [0, 0.1, 0], [0, 0, 0.1]])
         self.I = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
@@ -35,7 +34,7 @@ class Localization:
         else:
             temp_state = self.I.dot(self.state) + B.dot(np.array([velocity, w]))
             temp_covariance = self.I.dot(self.covariance).dot(self.I.T) + self.R
-            self.R = np.array([[np.random.normal(), 0, 0], [0, np.random.normal(), 0], [0, 0, np.random.normal()]])
+            # self.R = np.array([[np.random.normal(), 0, 0], [0, np.random.normal(), 0], [0, 0, np.random.normal()]])
 
         # no correction
         if np.all(z) == 0:
