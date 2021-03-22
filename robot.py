@@ -10,7 +10,7 @@ class Robot:
     radius = 20.
     sensor_range = 200
     distance_threshold = 150
-    init_position = np.array([220., 130., 0.])
+    init_position = np.array([150., 130., 0.])
     # movement features
     max_speed = 5
     velocity_constant = 2
