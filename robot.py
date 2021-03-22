@@ -5,6 +5,7 @@ author: Diego Di Benedetto, Julia Hindel
 import numpy as np
 from localization import Localization
 
+
 class Robot:
     # robot features
     radius = 20.

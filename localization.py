@@ -4,9 +4,6 @@ import numpy as np
 
 
 class Localization:
-    covariance_init = 1
-    # R_init = 0.1
-    # Q_init = 0.1
 
     def __init__(self, position):
         self.state = position
@@ -17,9 +14,7 @@ class Localization:
         self.I = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
     def apply_filter(self, velocity, w, landmarks, obstacles, position):
-        print('\nbefore ',self.state)
         z = self.sensor_model(landmarks, obstacles, position)
-        print('zzzzzzzzzz ', z)
         delta = 1
         time = 1
         B = np.array([[delta * time * np.cos(self.state[2]), 0],
@@ -34,7 +29,6 @@ class Localization:
         else:
             temp_state = self.I.dot(self.state) + B.dot(np.array([velocity, w]))
             temp_covariance = self.I.dot(self.covariance).dot(self.I.T) + self.R
-            # self.R = np.array([[np.random.normal(), 0, 0], [0, np.random.normal(), 0], [0, 0, np.random.normal()]])
 
         # no correction
         if np.all(z) == 0:

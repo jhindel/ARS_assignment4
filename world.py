@@ -2,10 +2,8 @@ from tkinter import *
 import time
 import numpy as np
 import math
-from PIL import ImageTk, Image
-import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
-# from shapely.geometry import Polygon
+
 
 class World:
     # size of the environment
@@ -22,12 +20,6 @@ class World:
                         [470, 470], [280, 210], [350, 130], [630, 240]]
 
     def __init__(self, window):
-        '''
-        the configuration of the world is chosen with the parameter config(set in EA)
-        GUI is a boolean variable, when set to true the world is displayed. the variable is dynamically changed
-        in EA.run_generation
-        '''
-
         self.window = window
         self.canvas = Canvas(self.window)
         self.draw_obstacles()
@@ -111,26 +103,28 @@ class World:
     def update_state(self, state, old_state):
         self.canvas.create_line(state[0], state[1], old_state[0], old_state[1], fill='red')
 
-
     def draw_covariance(self, state, covariance):
         print("update_covariance", state, [covariance[0][0], covariance[1][1]])
         # first draw the ellipse using matplotlib
-        a = covariance[0][0]
-        b = covariance[0][1]
-        c = covariance[1][1]
-        width = (a + c)/2 + math.sqrt(math.pow((a - c)/2, 2) + math.pow(b,2))
-        height = (a + c)/2 - math.sqrt(math.pow((a - c)/2, 2) + math.pow(b,2))
+        # calculate covariance height and width
+        # a = covariance[0][0]
+        # b = covariance[0][1]
+        # c = covariance[1][1]
+        # width = (a + c)/2 + math.sqrt(math.pow((a - c)/2, 2) + math.pow(b,2))
+        # height = (a + c)/2 - math.sqrt(math.pow((a - c)/2, 2) + math.pow(b,2))
+        # if a >= c:
+        #     angle = 0
+        # else:
+        #     angle = 180
+
+        # use covariance values
         width = covariance[0][0]
         height = covariance[1][1]
-        if a >= c:
-            angle = 0
-        else:
-            angle = 180
         ellipse = Ellipse((state[0], state[1]), width * 2 , height *2, covariance[2][2])
         vertices = ellipse.get_verts()  # get the vertices from the ellipse object
 
         flat_vertices = [item for sublist in vertices for item in sublist]
         print(flat_vertices)
-        # ellipse = Polygon(vertices)  # Turn it into a polygon
+        # Turn it into a polygon
         self.canvas.create_polygon(*flat_vertices, fill='blue')
 
